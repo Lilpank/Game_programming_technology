@@ -2,6 +2,7 @@ from pydantic import BaseModel, ValidationError
 
 
 class data_json(BaseModel):
-    card: str
+    warrior: (str, str)
     get: str
-    went: str
+    went: (str, str)
+

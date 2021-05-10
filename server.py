@@ -3,15 +3,9 @@ from _thread import *
 import pickle
 from game import Game
 from constants import HOST, PORT
-import _json
-
-"""
-Для сетевого взаимодействия через JSON используешь обычную библиотеку json.
-Для правильной архитектуры, чтобы не запутаться в объектах используешь https://pydantic-docs.helpmanual.io/
-Через Pydantic описываешь классом свои объекты (дата классы), это просто классы, которые будут содержать данные
-из строки json и автоматом конвертироваться в объекты. на youtub'e просмотри Диджитализируй - pydantic. 
-Коротко и понятно расскажет. А Pickle удаляй.
-"""
+import json
+import data_json
+from pydantic import BaseModel, ValidationError
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -28,9 +22,16 @@ games = {}
 idCount = 0
 
 
-def threaded_client(conn, p, gameId):
+class data_json(BaseModel):
+    card: str
+    get: str
+    went: str
+
+
+def threaded_client(conn, player_position, gameId):
     global idCount
-    conn.send(str.encode(str(p)))
+
+    conn.send(str.encode(str(player_position)))
 
     while True:
         try:
@@ -45,7 +46,7 @@ def threaded_client(conn, p, gameId):
                         if data == "reset":
                             game.reset_went()
                         elif data != "get":
-                            game.play(p, data)
+                            game.play(player_position, data)
 
                         conn.sendall(pickle.dumps(game))
                 else:
