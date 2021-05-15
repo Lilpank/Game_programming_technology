@@ -1,8 +1,9 @@
 import socket
-import pickle
-from typing import Optional
-from pickle import PicklingError
-from constants import PORT, HOST
+from pydantic import ValidationError
+from typing import Optional, Any
+from constants import PORT, HOST, CLIENT_AWAIT
+from models.data.game import GameModel
+from models.game.player import Player
 
 
 class HasNotSocketConnection(Exception):
@@ -12,8 +13,11 @@ class HasNotSocketConnection(Exception):
 
 
 class Network:
+    """Класс, отвечающий за соединение клиента с сервером.
+    """
+
     def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.addr = (HOST, PORT)
         self.has_connect: bool = False
 
@@ -25,7 +29,7 @@ class Network:
             raise HasNotSocketConnection('Not socket connection.')
 
         try:
-            return self.client.recv(2048).decode()
+            return self.connection.recv(2048).decode()
         except Exception as e:
             pass
 
@@ -35,20 +39,27 @@ class Network:
         if not self.has_connect:
             # Предотвращаем повторного подключения, т.к. оно уже установлено
             # В случае, если код будет вызван дважды.
-            self.client.connect(self.addr)
+            self.connection.connect(self.addr)
             self.has_connect = True
 
     def disconnect(self):
-        self.client.close()
+        self.connection.close()
         self.has_connect = False
 
-    def send(self, data: str):
-        # TODO: Узнать и обработать статус.
-        status: int = self.client.send(data.encode('utf-8'))
+    def send_and_get(self, data: str) -> Any:
+        status: int = self.connection.send(data.encode('utf-8'))
+        data = self.connection.recv(2048 * 2)
 
+        if data.decode('utf8') == ' ':
+            return None
+
+        model = None
         try:
-            return pickle.loads(self.client.recv(2048 * 2))
-        except PicklingError as e:
-            print(e)
+            model = GameModel.parse_raw(data)
+        except ValidationError:
+            model = Player.parse_raw(data)
         except Exception as e:
+            print(e)
             print('Непредвиденная ошибка.')
+
+        return model
