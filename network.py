@@ -4,6 +4,8 @@ from typing import Optional, Any
 from constants import PORT, HOST, CLIENT_AWAIT
 from models.data.game import GameModel
 from models.game.player import Player
+from models.data.room import GameRoom
+import json
 
 
 class HasNotSocketConnection(Exception):
@@ -49,17 +51,19 @@ class Network:
     def send_and_get(self, data: str) -> Any:
         status: int = self.connection.send(data.encode('utf-8'))
         data = self.connection.recv(2048 * 2)
-
-        if data.decode('utf8') == ' ':
+        if data.decode('utf-8') == ' ':
             return None
 
-        model = None
         try:
-            model = GameModel.parse_raw(data)
-        except ValidationError:
-            model = Player.parse_raw(data)
-        except Exception as e:
+            prepare_data = json.loads(data)
+        except json.JSONDecodeError as e:
             print(e)
-            print('Непредвиденная ошибка.')
-
+            return None
+        print(prepare_data)
+        if prepare_data['data_class'] == 2:
+            model = Player(**prepare_data['data'])
+        elif prepare_data['data_class'] == 1:
+            model = GameRoom(**prepare_data['data'])
+        else:
+            model = None
         return model

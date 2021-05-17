@@ -24,3 +24,17 @@ class GameModel(BaseModel):
 
     def players_count(self) -> int:
         return len(self.players)
+
+
+class Response(BaseModel):
+    """Дата-класс для взаимодействия клиента и сервера, общая обертка.
+    """
+    """
+    data_class = 1 - Модель GameRoom
+    data_class = 2 - Модель Player
+    data_class = 3 - Модель GameModel
+    """
+
+    data_class: int
+    data: typing.Any
+

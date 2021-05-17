@@ -2,7 +2,7 @@ import pygame
 
 
 class Statistics:
-    def __init__(self, text, x, y, color, Player):
+    def __init__(self, text, x, y, color):
         self.text = text
         self.x = x
         self.y = y

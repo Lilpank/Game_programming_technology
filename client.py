@@ -9,6 +9,7 @@ from models.data.game import GameModel
 from models.game.player import Player
 from network import Network
 from views.buttons import Button
+from models.data.room import GameRoom
 from views.statistics import Statistics
 
 pygame.font.init()
@@ -33,6 +34,8 @@ player = Player.parse_raw(connection.get_pos())
 is_client_send_started: bool = False
 
 
+# TODO: Переделать кнопки.
+
 def _buy_worker_callback():
     connection.send_and_get(PLAYER_BUY_WORKER)
 
@@ -56,24 +59,19 @@ buttons = [
     Button("Закончить ход", 967, 300, (0, 0, 250), callback=_finish_step_callback)
 ]
 
-# stats = [Statistics("Монеток: " + game.get_coins1(), 0, 0, (0, 0, 0)),
-#          Statistics("Войнов: " + game.get_warrior1(), 0, 50, (0, 0, 0)),
-#          Statistics("Рабочих: " + game.get_worker1(), 0, 100, (0, 0, 0))]
 
+def redraw_stat(sc, room: GameRoom):
+    data = room.player_data(player.id)
 
-# def redraw_stat(sc, game, p):
-#     if p == 0:
-#         stats = [Statistics("Монеток: " + game.get_coins1(), 0, 0, (0, 0, 0)),
-#                  Statistics("Войнов: " + game.get_warrior1(), 0, 50, (0, 0, 0)),
-#                  Statistics("Рабочих: " + game.get_worker1(), 0, 100, (0, 0, 0))]
-#         for stat in stats:
-#             stat.draw(sc)
-#     else:
-#         stats = [Statistics("Монеток: " + game.get_coins2(), 0, 0, (0, 0, 0)),
-#                  Statistics("Войнов: " + game.get_warrior2(), 0, 50, (0, 0, 0)),
-#                  Statistics("Рабочих: " + game.get_worker2(), 0, 100, (0, 0, 0))]
-#         for stat in stats:
-#             stat.draw(sc)
+    stats = [Statistics("Монеток: " + str(data.coins), 0, 0, (0, 0, 0)),
+             Statistics("Войнов: " + str(data.get_warrior_count()), 0, 50, (0, 0, 0)),
+             Statistics("Рабочих: " + str(data.get_worker_count()), 0, 100, (0, 0, 0))]
+    for stat in stats:
+        stat.draw(sc)
+
+    font = pygame.font.SysFont("comicsans", 50)
+    text = font.render("Раунд - " + str(room.get_match()), 1, (0, 255, 255))
+    sc.blit(text, (467, 300))
 
 
 def draw_await_players(layer: pygame.display) -> None:
@@ -103,7 +101,7 @@ def draw_war_place(layer: pygame.display) -> None:
     font = pygame.font.SysFont("comicsans", 60)
     text = font.render("Вы", 1, (0, 255, 255))
     layer.blit(text, (467, 450))
-    # redraw_stat(sc, game, player)
+
     text = font.render("Соперник", 1, (0, 255, 255))
     layer.blit(text, (467, 20))
     for btn in buttons:
@@ -184,15 +182,6 @@ def player_processing():
     #         pygame.time.delay(3000)
     # redraw_window(sc, game, player_position)
     #
-    # if game.both_went():
-    #     redraw_window(sc, game, player_position)
-    #     try:
-    #         game = network.send("reset")
-    #     except Exception as e:
-    #         logging.error(e)
-    #         print("Couldn't get game")
-    #         return None
-    #     pygame.display.update()
 
     # for event in pygame.event.get():
     #     if event.type == pygame.QUIT:
@@ -245,6 +234,11 @@ def main():
     elif model_type is GameModel:
         # Отображаем экран игры.
         draw_war_place(sc)
+    elif model_type is GameRoom:
+        room = model
+        draw_war_place(sc)
+        redraw_stat(sc, room)
+
     # elif model_type is AlertModel:
     # Модель данных для оповещения каких-либо предупреждений клиенту.
 
