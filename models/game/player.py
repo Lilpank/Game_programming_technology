@@ -36,6 +36,9 @@ class Player(pydantic.BaseModel):
     """Завершил свой матч.
     """
     has_finish_step: bool = False
+    """Игрок атакует.
+    """
+    is_attacked: bool = False
 
     def _add_unit(self, model: BaseGameUnit):
         self.units.append(model)

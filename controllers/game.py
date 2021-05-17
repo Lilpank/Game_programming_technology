@@ -58,15 +58,19 @@ class GameController:
         elif action == CREATE_WARRIOR:
             player.buy_warrior()
         elif action == CREATE_WAR_STEP:
+            player.is_attacked = True
             if room:
                 room.player_passed(player)
-            if room.round_finished():
-                room.player_attack(player)
+                if room.round_finished():
+                    room.player_attack(player)
         elif action == CREATE_FINISH_STEP:
             if room:
                 room.player_passed(player)
-            if room.round_finished():
-                room.new_round()
+                if room.round_finished():
+                    if room.is_attacked():
+                        room.player_attack(player)
+                    room.new_round()
+
 
         else:
             raise Exception('Игроку непозволено использовать другие события.')

@@ -48,8 +48,8 @@ class Network:
         self.connection.close()
         self.has_connect = False
 
-    def send_and_get(self, data: str) -> Any:
-        status: int = self.connection.send(data.encode('utf-8'))
+    def send_and_get(self, data: str, playe_id: int) -> Any:
+        status: int = self.connection.send(json.dumps(dict(id=playe_id, data=data)).encode('utf-8'))
         data = self.connection.recv(2048 * 2)
         if data.decode('utf-8') == ' ':
             return None

@@ -1,3 +1,4 @@
+import json
 import socket
 import logging
 from _thread import *
@@ -24,14 +25,17 @@ print("Waiting for a connection, Server Started")
 game = GameController()
 
 
-def threaded_client(connect: socket.socket, player: Player):
-    connect.send(player.json().encode('utf8'))
-
+def threaded_client(connect: socket.socket):
+    player = None
     while True:
         try:
             data = connect.recv(4096).decode()
             if not data:
                 break
+
+            player_data = json.loads(data)
+            data = player_data['data']
+            player = game.model.players[player_data['id']]
 
             if data in [CLIENT_STARTED, CLIENT_RESET, CLIENT_STEP]:
                 # Проверяем базовые события от клиента.
@@ -69,7 +73,6 @@ def threaded_client(connect: socket.socket, player: Player):
             if data == PLAYER_ACTION_ATTACK:
                 print(f'{player.id} want attack')
                 game.player_action(player.id, CREATE_WAR_STEP)
-
                 connect.sendall(Response(data_class=2, data=player).json().encode('utf8'))
 
             if data == PLAYER_FINISH_STEP:
@@ -116,7 +119,8 @@ def threaded_client(connect: socket.socket, player: Player):
             break
 
     print("Lost connection")
-    game.remove_player(player)
+    if player:
+        game.remove_player(player)
     connect.close()
 
 
@@ -129,5 +133,5 @@ while True:
     player = Player(id=player_id)
 
     game.add_player(player)
-
-    start_new_thread(threaded_client, (connection, player))
+    connection.send(player.json().encode('utf8'))
+    start_new_thread(threaded_client, (connection,))

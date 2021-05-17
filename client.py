@@ -37,19 +37,19 @@ is_client_send_started: bool = False
 # TODO: Переделать кнопки.
 
 def _buy_worker_callback():
-    connection.send_and_get(PLAYER_BUY_WORKER)
+    connection.send_and_get(PLAYER_BUY_WORKER, player.id)
 
 
 def _buy_warrior_callback():
-    connection.send_and_get(PLAYER_BUY_WARRIOR)
+    connection.send_and_get(PLAYER_BUY_WARRIOR, player.id)
 
 
 def _action_attack_callback():
-    connection.send_and_get(PLAYER_ACTION_ATTACK)
+    connection.send_and_get(PLAYER_ACTION_ATTACK, player.id)
 
 
 def _finish_step_callback():
-    connection.send_and_get(PLAYER_FINISH_STEP)
+    connection.send_and_get(PLAYER_FINISH_STEP, player.id)
 
 
 buttons = [
@@ -60,17 +60,15 @@ buttons = [
 ]
 
 
-def redraw_stat(sc, room: GameRoom):
-    data = room.player_data(player.id)
-
-    stats = [Statistics("Монеток: " + str(data.coins), 0, 0, (0, 0, 0)),
-             Statistics("Войнов: " + str(data.get_warrior_count()), 0, 50, (0, 0, 0)),
-             Statistics("Рабочих: " + str(data.get_worker_count()), 0, 100, (0, 0, 0))]
+def redraw_stat(sc, player: Player, match):
+    stats = [Statistics("Монеток: " + str(player.coins), 0, 0, (0, 0, 0)),
+             Statistics("Войнов: " + str(player.get_warrior_count()), 0, 50, (0, 0, 0)),
+             Statistics("Рабочих: " + str(player.get_worker_count()), 0, 100, (0, 0, 0))]
     for stat in stats:
         stat.draw(sc)
 
     font = pygame.font.SysFont("comicsans", 50)
-    text = font.render("Раунд - " + str(room.get_match()), 1, (0, 255, 255))
+    text = font.render("Раунд - " + str(match), 1, (0, 255, 255))
     sc.blit(text, (467, 300))
 
 
@@ -206,10 +204,10 @@ def main():
     model = None
     try:
         if is_client_send_started:
-            model: typing.Any = connection.send_and_get(CLIENT_STARTED)
+            model: typing.Any = connection.send_and_get(CLIENT_STARTED, player.id)
             is_client_send_started = None
         elif is_client_send_started is None:
-            model = connection.send_and_get(CLIENT_AWAIT)
+            model = connection.send_and_get(CLIENT_AWAIT, player.id)
 
     except ConnectionResetError:
         connection.disconnect()
@@ -235,9 +233,9 @@ def main():
         # Отображаем экран игры.
         draw_war_place(sc)
     elif model_type is GameRoom:
-        room = model
+        player = model.player_data(player.id)
         draw_war_place(sc)
-        redraw_stat(sc, room)
+        redraw_stat(sc, player, model.get_match())
 
     # elif model_type is AlertModel:
     # Модель данных для оповещения каких-либо предупреждений клиенту.
