@@ -32,6 +32,7 @@ pygame.display.update()
 connection = Network()
 player = Player.parse_raw(connection.get_pos())
 is_client_send_started: bool = False
+communication_as_json: bool = True
 
 
 # TODO: Переделать кнопки.
@@ -60,7 +61,7 @@ buttons = [
 ]
 
 
-def redraw_stat(sc, player: Player, match):
+def redraw_stat(sc, player: Player, match) -> None:
     stats = [Statistics("Монеток: " + str(player.coins), 0, 0, (0, 0, 0)),
              Statistics("Войнов: " + str(player.get_warrior_count()), 0, 50, (0, 0, 0)),
              Statistics("Рабочих: " + str(player.get_worker_count()), 0, 100, (0, 0, 0))]
@@ -70,6 +71,32 @@ def redraw_stat(sc, player: Player, match):
     font = pygame.font.SysFont("comicsans", 50)
     text = font.render("Раунд - " + str(match), 1, (0, 255, 255))
     sc.blit(text, (467, 300))
+
+
+def screen_for_the_end_of_the_game(layer, room: GameRoom, player: Player) -> None:
+    """Отрисовка экрана в конце игры.
+
+    :param layer: Surface
+    :param room: GameRoom
+    :param player: Player
+    :return: None
+    """
+
+    layer.blit(pygame.image.load("Picture/BackGround.jpg").convert(), (0, 0))
+    font = pygame.font.SysFont("comicsans", 80)
+
+    if room.winner == player.id:
+        text = font.render("Вы победили! :)", 1, (255, 0, 0), True)
+    else:
+        text = font.render("Вы проиграли! :'(", 1, (255, 0, 0), True)
+
+    layer.blit(
+        text,
+        (
+            size_main_window[0] / 2 - text.get_width() / 2,
+            size_main_window[1] / 2 - text.get_height() / 2
+        )
+    )
 
 
 def draw_await_players(layer: pygame.display) -> None:
@@ -104,98 +131,6 @@ def draw_war_place(layer: pygame.display) -> None:
     layer.blit(text, (467, 20))
     for btn in buttons:
         btn.draw(sc)
-
-
-def player_processing():
-    # if game.p1Went:
-    #     if game.get_player_move(0)[0] == "Р" or game.get_player_move(0)[0] == "В":
-    #         game.choose_card1()
-    #         redraw_stat(sc, game, player_position)
-    #     if game.get_player_move(0)[0] == "З":
-    #         is_next_round1 = True
-    #     elif game.get_player_move(0)[0] == "А":
-    #         is_fight1 = True
-    #     else:
-    #         try:
-    #             game = network.send("reset1")
-    #         except Exception as e:
-    #             logging.error(e)
-    #             print("Couldn't get game")
-    #             return None
-    #         is_next_round1 = False
-    #
-    # if game.p2Went:
-    #     if game.get_player_move(1)[0] == "Р" or game.get_player_move(1)[0] == "В":
-    #         game.choose_card2()
-    #     if game.get_player_move(1)[0] == "З":
-    #         is_next_round2 = True
-    #     elif game.get_player_move(1)[0] == "А":
-    #         is_fight2 = True
-    #     else:
-    #         try:
-    #             game = network.send("reset2")
-    #         except Exception as e:
-    #             logging.error(e)
-    #             print("Couldn't get game")
-    #             return None
-    #         is_next_round2 = False
-    #
-    # if is_next_round1 and is_next_round2:
-    #     game.builder_mines()
-    #     Game.match += 1
-    #     pygame.time.delay(500)
-    #
-    # if is_fight1 or is_fight2:
-    #     if game.p1Went and game.p2Went:
-    #         if (game.is_winner() == 1 and player_position == 1) or (game.is_winner() == 0 and player_position == 0):
-    #             text = font.render("Вы выйграли!", 1, (255, 0, 0))
-    #             Game.match = 1
-    #             Game.coins[0] = 5
-    #             Game.worker[0] = 5
-    #             Game.warrior[0] = 1
-    #
-    #             Game.coins[1] = 5
-    #             Game.worker[1] = 5
-    #             Game.warrior[1] = 1
-    #         else:
-    #             text = font.render("Вы проиграли", 1, (255, 0, 0))
-    #             Game.match = 1
-    #             Game.coins[0] = 5
-    #             Game.worker[0] = 5
-    #             Game.warrior[0] = 1
-    #
-    #             Game.coins[1] = 5
-    #             Game.worker[1] = 5
-    #             Game.warrior[1] = 1
-    #
-    #         sc.blit(
-    #             text,
-    #             (
-    #                 size_main_window[0] / 2 - text.get_width() / 2,
-    #                 size_main_window[1] / 2 - text.get_height() / 2
-    #             )
-    #         )
-    #
-    #         pygame.display.update()
-    #         pygame.time.delay(3000)
-    # redraw_window(sc, game, player_position)
-    #
-
-    # for event in pygame.event.get():
-    #     if event.type == pygame.QUIT:
-    #         sys.exit()
-    #
-    #     if event.type == pygame.MOUSEBUTTONDOWN:
-    #         pos = pygame.mouse.get_pos()
-    #         # for btn in btns:
-    #         # if btn.click(pos) and game.connected():
-    #         # if player_position == 0:
-    #         #     # if not game.p1Went:
-    #         #     #     network.send(btn.text)
-    #         # else:
-    #         #     if not game.p2Went:
-    #         #         network.send(btn.text)
-    pass
 
 
 def main():
@@ -233,9 +168,13 @@ def main():
         # Отображаем экран игры.
         draw_war_place(sc)
     elif model_type is GameRoom:
+        room: GameRoom = model
         player = model.player_data(player.id)
         draw_war_place(sc)
-        redraw_stat(sc, player, model.get_match())
+        redraw_stat(sc, player, room.get_match())
+
+        if room.winner is not None:
+            screen_for_the_end_of_the_game(sc, room, player)
 
     # elif model_type is AlertModel:
     # Модель данных для оповещения каких-либо предупреждений клиенту.

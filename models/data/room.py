@@ -4,9 +4,6 @@ from models.game.player import Player
 from uuid import uuid4
 import pydantic
 
-IS_WIN = 1
-IS_LOSS = 0
-
 
 class GameRoom(pydantic.BaseModel):
     """Класс отвечающий за количество игроков в комнате и за количество раундов.
@@ -55,17 +52,21 @@ class GameRoom(pydantic.BaseModel):
         for player in self.players:
             player.coins_increase()
 
-    def player_attack(self, attacker: Player):
+    def player_defender(self):
+        attacked = None
+        defender = None
+
         for player in self.players:
-            print(player.json())
-            if attacker.get_warrior_count() > player.get_warrior_count():
-                print('1, player id', player.id)
-                print('attacker id ', attacker.id)
-                self.winner = attacker.id
-                return None
+            if player.is_attacked:
+                attacked = player
             else:
-                print("player id ", player.id)
-                self.winner = player.id
+                defender = player
+        if attacked.get_warrior_count() == defender.get_warrior_count():
+            self.winner = defender.id
+        if attacked.get_warrior_count() > defender.get_warrior_count():
+            self.winner = attacked.id
+        else:
+            self.winner = defender.id
 
     def is_attacked(self) -> bool:
         return any(filter(lambda x: x.is_attacked, self.players))

@@ -62,13 +62,13 @@ class GameController:
             if room:
                 room.player_passed(player)
                 if room.round_finished():
-                    room.player_attack(player)
+                    room.player_defender()
         elif action == CREATE_FINISH_STEP:
             if room:
                 room.player_passed(player)
                 if room.round_finished():
                     if room.is_attacked():
-                        room.player_attack(player)
+                        room.player_defender()
                     room.new_round()
 
 

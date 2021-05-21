@@ -1,11 +1,12 @@
 import socket
-from pydantic import ValidationError
 from typing import Optional, Any
-from constants import PORT, HOST, CLIENT_AWAIT
-from models.data.game import GameModel
+from constants import PORT, HOST
 from models.game.player import Player
 from models.data.room import GameRoom
 import json
+from dicttoxml import dicttoxml
+import xmltodict
+from client import communication_as_json
 
 
 class HasNotSocketConnection(Exception):
@@ -48,18 +49,21 @@ class Network:
         self.connection.close()
         self.has_connect = False
 
-    def send_and_get(self, data: str, playe_id: int) -> Any:
-        status: int = self.connection.send(json.dumps(dict(id=playe_id, data=data)).encode('utf-8'))
+    def send_and_get(self, data: str, player_id: int) -> Any:
+        status: int = self.connection.send(json.dumps(dict(id=player_id, data=data)).encode('utf-8'))
         data = self.connection.recv(2048 * 2)
         if data.decode('utf-8') == ' ':
             return None
+        if communication_as_json:
+            try:
+                prepare_data = json.loads(data)
+            except json.JSONDecodeError as e:
+                print(e)
+                return None
+        else:
+            data_xml = dicttoxml(json.loads(data), attr_type=False)
+            prepare_data = dict(xmltodict.parse(data_xml)['root']['data'])
 
-        try:
-            prepare_data = json.loads(data)
-        except json.JSONDecodeError as e:
-            print(e)
-            return None
-        print(prepare_data)
         if prepare_data['data_class'] == 2:
             model = Player(**prepare_data['data'])
         elif prepare_data['data_class'] == 1:
