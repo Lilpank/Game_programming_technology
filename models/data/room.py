@@ -1,5 +1,4 @@
 from typing import Optional
-
 from models.game.player import Player
 from uuid import uuid4
 import pydantic
@@ -19,10 +18,9 @@ class GameRoom(pydantic.BaseModel):
     winner: Optional[int] = None
 
     def player_passed(self, player: Player):
-        # TODO: Необходимо определить кому можно совершить следующий ход за раунд.
         if player.id not in self.passed:
             self.passed.append(player.id)
-            player.has_finish_step = False
+            player.has_finish_step = True
 
     def round_finished(self) -> bool:
         return len(self.passed) == len(self.players)
@@ -33,6 +31,7 @@ class GameRoom(pydantic.BaseModel):
         self._coins_increase()
         for player in self.players:
             player.is_attacked = False
+            player.has_finish_step = False
 
     def set_players(self, players: list[Player]):
         self.players = players

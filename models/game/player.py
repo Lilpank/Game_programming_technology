@@ -33,7 +33,7 @@ class Player(pydantic.BaseModel):
     """
     units: list[Any] = []
 
-    """Игрок завершил свой матч.
+    """Игрок завершил свой ход.
     """
     has_finish_step: bool = False
     """Игрок атакует.

@@ -8,10 +8,10 @@ class BaseGameUnit(pydantic.BaseModel):
 
 
 class Warrior(BaseGameUnit):
-    price: int = 2
+    price: int = constants.PRICE_WARRIOR
     type: int = constants.IS_WARRIOR
 
 
 class Worker(BaseGameUnit):
-    price: int = 1
+    price: int = constants.PRICE_WORKER
     type: int = constants.IS_WORKER

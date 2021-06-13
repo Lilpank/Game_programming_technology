@@ -2,7 +2,8 @@ import pygame
 
 
 class Statistics:
-    def __init__(self, text, x, y, color):
+    def __init__(self, text, x, y, color, font):
+        self.font = font
         self.text = text
         self.x = x
         self.y = y
@@ -11,6 +12,5 @@ class Statistics:
         self.height = 50
 
     def draw(self, sc):
-        font = pygame.font.SysFont("comicsans", 45)
-        text = font.render(self.text, 1, (0, 255, 255))
+        text = self.font.render(self.text, 1, self.color)
         sc.blit(text, (self.x, self.y))

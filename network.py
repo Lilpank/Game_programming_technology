@@ -6,7 +6,8 @@ from models.data.room import GameRoom
 import json
 from dicttoxml import dicttoxml
 import xmltodict
-from client import communication_as_json
+
+communication_as_json: bool = True
 
 
 class HasNotSocketConnection(Exception):
