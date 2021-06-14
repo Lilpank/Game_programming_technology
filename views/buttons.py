@@ -2,7 +2,8 @@ import pygame
 
 
 class Button:
-    def __init__(self, x, y, width, height, callback: callable = None):
+    def __init__(self, text, x, y, width, height, callback: callable = None):
+        self.text = text
         self.x = x
         self.y = y
         self.width = width
@@ -12,8 +13,11 @@ class Button:
         self.showing = False
         self.button_rect = pygame.Rect(x, y, width, height)
 
-    def draw(self) -> None:
+    def draw(self, sc) -> None:
         self.showing = True
+        font = pygame.font.SysFont("comicsan", 30)
+        text = font.render(self.text, 1, (219, 143, 111))
+        sc.blit(text, (self.x + 60, self.y + 200))
 
     def handle_event(self, event: pygame.event):
         if self.x <= pygame.mouse.get_pos()[0] <= (self.x + self.width) and \

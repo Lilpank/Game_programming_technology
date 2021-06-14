@@ -27,11 +27,11 @@ class Player(pydantic.BaseModel):
 
     """Кол-во монет у игрока.
     """
-    coins: int = 5
+    coins: int = 10
 
     """Юниты у игрока.
     """
-    units: list[Any] = []
+    units: list[Any] = [Worker(), Worker(), Worker(), Worker(), Worker()]
 
     """Игрок завершил свой ход.
     """

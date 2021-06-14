@@ -1,6 +1,3 @@
-import pygame
-
-
 class Statistics:
     def __init__(self, text, x, y, color, font):
         self.font = font

@@ -52,14 +52,16 @@ def _finish_step_callback():
 
 
 def redraw_stat(sc, player: Player, match) -> None:
-    stats = [Statistics("Количетсво кристаллов: " + str(player.coins), 400, 450, (0, 255, 255),
-                        font=pygame.font.SysFont("fonts/BelweBoldBT.ttf", 45)),
-             Statistics(str(player.get_warrior_count()), 415, 712, (0, 0, 0),
-                        font=pygame.font.Font("fonts/BelweBoldBT.ttf", 45)
-                        ),
-             Statistics(str(player.get_worker_count()), 673, 711, (0, 0, 0),
-                        font=pygame.font.Font("fonts/BelweBoldBT.ttf", 45)
-                        )]
+    stats = [
+        Statistics("Количество кристаллов: " + str(player.coins), 400, 450, (0, 255, 255),
+                   font=pygame.font.SysFont("fonts/BelweBoldBT.ttf", 45)),
+        Statistics(str(player.get_warrior_count()), 415, 712, (0, 0, 0),
+                   font=pygame.font.Font("fonts/BelweBoldBT.ttf", 45)
+                   ),
+        Statistics(str(player.get_worker_count()), 673, 711, (0, 0, 0),
+                   font=pygame.font.Font("fonts/BelweBoldBT.ttf", 45)
+                   )
+    ]
     for stat in stats:
         stat.draw(sc)
 
@@ -112,7 +114,7 @@ def draw_await_players(layer: pygame.display) -> None:
 
 
 characters = pygame.sprite.Group()
-warrior = character.WarriorCharacter(340, 655, 'Picture/Warrior.png')
+warrior = character.WarriorCharacter(340, 650, 'Picture/Warrior.png')
 worker = character.Worker_Character(600, 650, 'Picture/Worker.png')
 characters.add(warrior, worker)
 
@@ -122,13 +124,13 @@ snap_end_turn = snap.Snap(1050, 350, 'Picture/act_end_turn.png')
 snaps.add(snap_attack, snap_end_turn)
 
 buttons = [
-    Button(505, 559, width=181, height=183,
+    Button("Рабочий", 505, 559, width=181, height=183,
            callback=_buy_worker_callback),
-    Button(250, 557, width=186, height=190,
+    Button("Воин", 250, 557, width=186, height=190,
            callback=_buy_warrior_callback),
-    Button(780, 555, width=snap_attack.image.get_width(), height=snap_attack.image.get_height(),
+    Button("Атака", 780, 555, width=snap_attack.image.get_width(), height=snap_attack.image.get_height(),
            callback=_action_attack_callback),
-    Button(979, 309, width=snap_end_turn.image.get_width(), height=snap_end_turn.image.get_height(),
+    Button("", 979, 309, width=snap_end_turn.image.get_width(), height=snap_end_turn.image.get_height(),
            callback=_finish_step_callback)
 ]
 
@@ -139,7 +141,7 @@ def draw_war_place(layer: pygame.display) -> None:
     :return: None.
     """
     layer.fill(0)
-    layer.blit(pygame.image.load("Picture/Back_ground_fight1.jpg").convert(), (0, 0))
+    layer.blit(pygame.image.load("Picture/Back_ground_fight.jpg").convert(), (0, 0))
 
     characters.update(int(player.get_coins_count()))
     characters.draw(layer)
@@ -148,7 +150,7 @@ def draw_war_place(layer: pygame.display) -> None:
     snaps.draw(layer)
 
     for btn in buttons:
-        btn.draw()
+        btn.draw(layer)
 
 
 def main():
